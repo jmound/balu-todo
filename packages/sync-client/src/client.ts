@@ -90,7 +90,24 @@ class HttpError extends Error {
   }
 }
 
-const uuid = (): string => globalThis.crypto.randomUUID();
+// `crypto.randomUUID` is secure-context only (HTTPS / localhost). LAN HTTP
+// hosts still have `crypto.getRandomValues`, so fall back to RFC 4122 v4.
+const uuid = (): string => {
+  const cryptoObj = globalThis.crypto;
+  if (typeof cryptoObj?.randomUUID === "function") {
+    return cryptoObj.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  if (typeof cryptoObj?.getRandomValues === "function") {
+    cryptoObj.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+};
 
 export function createSyncClient(opts: SyncClientOptions): SyncClient {
   const fetchImpl = opts.fetch ?? globalThis.fetch.bind(globalThis);
