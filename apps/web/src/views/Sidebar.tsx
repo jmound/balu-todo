@@ -30,7 +30,21 @@ const SMART: Array<[SmartList, string, TranslationKey]> = [
   ["logbook", "check-circle", "nav.logbook"],
 ];
 
-function SortableProject({ project, active, onClick, draggable }: { project: Project; active: boolean; onClick: () => void; draggable: boolean }) {
+function SortableProject({
+  project,
+  active,
+  onClick,
+  onDelete,
+  deleteLabel,
+  draggable,
+}: {
+  project: Project;
+  active: boolean;
+  onClick: () => void;
+  onDelete?: () => void;
+  deleteLabel?: string;
+  draggable: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver, active: dragActive } = useSortable({
     id: project.id,
     disabled: !draggable,
@@ -52,7 +66,13 @@ function SortableProject({ project, active, onClick, draggable }: { project: Pro
       }}
       {...(draggable ? { ...attributes, ...listeners } : {})}
     >
-      <SidebarItem projectColor={`var(--project-${project.color})`} label={project.name} active={active} onClick={onClick} />
+      <SidebarItem
+        projectColor={`var(--project-${project.color})`}
+        label={project.name}
+        active={active}
+        onClick={onClick}
+        action={onDelete ? { icon: "trash-2", label: deleteLabel ?? "Delete", onClick: onDelete } : undefined}
+      />
     </div>
   );
 }
@@ -91,6 +111,15 @@ export function Sidebar({ snapshot }: { snapshot: Snapshot }) {
     }
     setName("");
     setAdding(false);
+  }
+
+  function deleteProject(id: string) {
+    if (globalThis.confirm(t("project.deleteProjectConfirm"))) {
+      getSync()?.mutate({ type: "project_delete", args: { id } });
+      if (view.kind === "project" && view.projectId === id) {
+        setView({ kind: "list", list: "today" });
+      }
+    }
   }
 
   // Project reorder → per-project `project_update` sort_order (contract §5.4 has
@@ -194,6 +223,8 @@ export function Sidebar({ snapshot }: { snapshot: Snapshot }) {
                 project={p}
                 active={view.kind === "project" && view.projectId === p.id}
                 onClick={() => setView({ kind: "project", projectId: p.id })}
+                onDelete={() => deleteProject(p.id)}
+                deleteLabel={t("project.deleteProject")}
                 draggable
               />
             ))}

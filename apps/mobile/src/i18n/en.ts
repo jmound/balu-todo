@@ -180,6 +180,8 @@ export const en = {
   'project.addTask': 'Add task',
   'project.deleteSection': 'Delete section',
   'project.deleteSectionConfirm': 'Delete this section? Its tasks are kept and moved out of the section.',
+  'project.deleteProject': 'Delete project',
+  'project.deleteProjectConfirm': 'Delete this project? All tasks, sections, and comments within it will also be deleted.',
 
   'date.today': 'Today',
   'date.tomorrow': 'Tomorrow',

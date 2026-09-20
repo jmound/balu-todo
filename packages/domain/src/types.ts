@@ -218,6 +218,13 @@ export type CommandType =
   | "comment_delete"
   | "attachment_delete";
 
+// ── Project command args (contract §5.4) ──────────────────────────────
+
+/** `project_delete` args (contract §5.4). */
+export interface ProjectDeleteArgs {
+  id: string;
+}
+
 // ── Comment command args (contract §5.4, v1.2) ────────────────────────
 
 /** `comment_add` args — `task_id` may be a `temp_id` (contract §5.3). */

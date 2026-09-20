@@ -219,6 +219,8 @@ export const de: Record<TranslationKey, string> = {
   "project.sectionName": "Abschnittsname",
   "project.deleteSection": "Abschnitt löschen",
   "project.deleteSectionConfirm": "Diesen Abschnitt löschen? Die Aufgaben bleiben erhalten und werden aus dem Abschnitt gelöst.",
+  "project.deleteProject": "Projekt löschen",
+  "project.deleteProjectConfirm": "Dieses Projekt löschen? Alle Aufgaben, Abschnitte und Kommentare darin werden ebenfalls gelöscht.",
 
   // Screenreader-Ankündigungen für Drag & Drop; ein erfolgreicher Move bleibt
   // sonst still (Ablehnungen meldet sync.rejected).

@@ -236,6 +236,7 @@ def test_tools_list_advertises_schemas(client, user, mcp_on):
         "complete_task",
         "reopen_task",
         "delete_task",
+        "delete_project",
         "add_comment",
     }
     for tool in tools:
@@ -431,6 +432,78 @@ def test_delete_task_cascades_to_subtasks_and_comments(client, user, mcp_on):
     full = sync(client, user, "*")
     assert full["tasks"] == []
     assert full["comments"] == []
+
+
+def test_delete_project_removes_it_and_cascades(client, user, mcp_on):
+    key = mcp_key(client, user)
+    ws = user["workspace_id"]
+    created = sync(
+        client,
+        user,
+        "*",
+        [
+            cmd("project_add", temp_id="p1", name="Arbeit"),
+            cmd("section_add", temp_id="s1", project_id="p1", name="Backlog"),
+            cmd("task_add", temp_id="t1", project_id="p1", section_id="s1", title="Report"),
+        ],
+    )
+    pid = created["temp_id_mapping"]["p1"]
+    tid = created["temp_id_mapping"]["t1"]
+
+    result = call(client, key, "delete_project", {"workspace_id": ws, "project_id": pid})
+    assert result["isError"] is False
+    assert f'"id": "{pid}"' in payload(result)
+    assert '"name": "Arbeit"' in payload(result)
+
+    # Project is gone from list_projects
+    projects = call(client, key, "list_projects", {"workspace_id": ws})
+    assert '"Arbeit"' not in payload(projects)
+
+    # Task is gone
+    task_res = call(client, key, "get_task", {"workspace_id": ws, "task_id": tid})
+    assert task_res["isError"] is True
+
+    # Full sync delivers live objects only: projects, sections, tasks are gone
+    full = sync(client, user, "*")
+    assert full["projects"] == []
+    assert full["sections"] == []
+    assert full["tasks"] == []
+
+
+def test_delete_project_retry_says_already_deleted(client, user, mcp_on):
+    key = mcp_key(client, user)
+    ws = user["workspace_id"]
+    created = sync(client, user, "*", [cmd("project_add", temp_id="p1", name="Temporaer")])
+    pid = created["temp_id_mapping"]["p1"]
+
+    call(client, key, "delete_project", {"workspace_id": ws, "project_id": pid})
+    again = call(client, key, "delete_project", {"workspace_id": ws, "project_id": pid})
+    assert again["isError"] is True
+    assert "project already deleted" in payload(again)
+
+
+def test_delete_project_unknown_id_says_project_not_found(client, user, mcp_on):
+    import uuid as uuidlib
+
+    key = mcp_key(client, user)
+    ws = user["workspace_id"]
+    never = str(uuidlib.uuid4())
+
+    missing = call(client, key, "delete_project", {"workspace_id": ws, "project_id": never})
+    assert missing["isError"] is True
+    assert "project not found" in payload(missing)
+
+
+def test_viewer_cannot_delete_project(client, user, mcp_on):
+    viewer = _join(client, user, role="viewer")
+    key = mcp_key(client, viewer)
+    ws = user["workspace_id"]
+    created = sync(client, user, "*", [cmd("project_add", temp_id="p1", name="Unantastbar")])
+    pid = created["temp_id_mapping"]["p1"]
+
+    blocked = call(client, key, "delete_project", {"workspace_id": ws, "project_id": pid})
+    assert blocked["isError"] is True
+    assert "viewer role is read-only" in payload(blocked)
 
 
 def test_update_task_moves_project_and_section(client, user, mcp_on):

@@ -537,6 +537,26 @@ def t_delete_task(ctx: ToolContext, args: dict) -> dict:
     return {"deleted": {"id": str(task_id), "title": title, "recurrence": recurrence}}
 
 
+def t_delete_project(ctx: ToolContext, args: dict) -> dict:
+    ws_id, role = _workspace(ctx, args)
+    project_id = _uuid_arg(args, "project_id")
+    try:
+        project = _get_project(ctx, ws_id, project_id)
+    except ToolError:
+        row = ctx.db.get(Project, project_id)
+        if row is not None and row.is_deleted and row.workspace_id == ws_id:
+            raise ToolError("project already deleted") from None
+        raise
+    name = project.name
+    _apply(
+        ctx,
+        ws_id,
+        role,
+        [Command(type="project_delete", uuid=str(uuid.uuid4()), args={"id": str(project_id)})],
+    )
+    return {"deleted": {"id": str(project_id), "name": name}}
+
+
 def t_add_comment(ctx: ToolContext, args: dict) -> dict:
     ws_id, role = _workspace(ctx, args)
     task_id = _uuid_arg(args, "task_id")
@@ -566,6 +586,7 @@ _WORKSPACE_ID = {
     "type": "string",
     "description": "Workspace id from list_workspaces.",
 }
+_PROJECT_ID = {"type": "string", "description": "Project id from list_projects."}
 _TASK_ID = {"type": "string", "description": "Task id from list_tasks or get_task."}
 
 _TASK_FIELDS: dict[str, Any] = {
@@ -783,6 +804,18 @@ TOOLS: tuple[Tool, ...] = (
             ["workspace_id", "task_id"],
         ),
         handler=t_delete_task,
+    ),
+    Tool(
+        name="delete_project",
+        description=(
+            "Delete a project. Its sections and tasks (including their comments and "
+            "attachments) are deleted with it. There is no undo over MCP."
+        ),
+        input_schema=_schema(
+            {"workspace_id": _WORKSPACE_ID, "project_id": _PROJECT_ID},
+            ["workspace_id", "project_id"],
+        ),
+        handler=t_delete_project,
     ),
     Tool(
         name="add_comment",

@@ -185,6 +185,8 @@ export const de: Record<TranslationKey, string> = {
   'project.addTask': 'Aufgabe hinzufügen',
   'project.deleteSection': 'Abschnitt löschen',
   'project.deleteSectionConfirm': 'Diesen Abschnitt löschen? Die Aufgaben bleiben erhalten und werden aus dem Abschnitt gelöst.',
+  'project.deleteProject': 'Projekt löschen',
+  'project.deleteProjectConfirm': 'Dieses Projekt löschen? Alle Aufgaben, Abschnitte und Kommentare darin werden ebenfalls gelöscht.',
 
   'date.today': 'Heute',
   'date.tomorrow': 'Morgen',
