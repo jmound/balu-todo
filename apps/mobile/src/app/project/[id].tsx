@@ -1,5 +1,5 @@
 import { canWrite, isOpen, todayLocalISO, type Task } from '@balu/domain';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { StackHeader } from '../../components/StackHeader';
 import { TaskItems } from '../../components/TaskList';
 import { EmptyState, SectionHeader } from '../../components/ui';
 import { useT } from '../../i18n';
-import { deleteSection } from '../../lib/actions';
+import { deleteProject, deleteSection } from '../../lib/actions';
 import { useApp } from '../../store/app';
 import { useMaps, useSnapshot } from '../../store/useSnapshot';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -52,12 +52,40 @@ export default function ProjectScreen() {
       { text: t('common.delete'), style: 'destructive', onPress: () => deleteSection(sectionId) },
     ]);
 
+  const confirmDeleteProject = () =>
+    Alert.alert(t('project.deleteProject'), t('project.deleteProjectConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          deleteProject(id);
+          router.back();
+        },
+      },
+    ]);
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg, paddingTop: insets.top }}>
       <StackHeader
         title={project?.name ?? ''}
         colorDot={projectHex(project?.color)}
-        right={<ProgressRing done={doneCount} total={projectTasks.length} />}
+        right={
+          <>
+            <ProgressRing done={doneCount} total={projectTasks.length} />
+            {writable && (
+              <Pressable
+                hitSlop={10}
+                onPress={confirmDeleteProject}
+                accessibilityRole="button"
+                accessibilityLabel={t('project.deleteProject')}
+                style={({ pressed }) => [{ opacity: pressed ? 0.5 : 1 }]}
+              >
+                <Icon name="trash-2" size={20} color={theme.textTertiary} strokeWidth={1.75} />
+              </Pressable>
+            )}
+          </>
+        }
       />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {openTasks.length === 0 && sections.length === 0 ? (

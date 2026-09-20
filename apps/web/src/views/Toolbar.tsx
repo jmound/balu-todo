@@ -2,7 +2,8 @@ import type { Theme } from "@balu/domain";
 import type { Snapshot } from "@balu/sync-client";
 import { useT } from "../lib/useT.js";
 import { useApp } from "../store/app.js";
-import { api } from "../lib/clients.js";
+import { api, getSync } from "../lib/clients.js";
+import { canWrite, useMyRole } from "../lib/role.js";
 import { syncLabelKey } from "../components/SyncIndicator.js";
 import { SyncIndicator } from "../components/SyncIndicator.js";
 import { IconButton } from "../components/IconButton.js";
@@ -20,6 +21,8 @@ export function Toolbar({ snapshot }: { snapshot: Snapshot }) {
   const setTheme = useApp((s) => s.setTheme);
   const setView = useApp((s) => s.setView);
   const setPalette = useApp((s) => s.setPalette);
+
+  const writable = canWrite(useMyRole());
 
   let title = "Balu";
   let progress: { value: number; total: number } | null = null;
@@ -57,6 +60,18 @@ export function Toolbar({ snapshot }: { snapshot: Snapshot }) {
         {title}
       </h1>
       {progress && <ProgressRing value={progress.value} total={progress.total} showLabel />}
+      {view.kind === "project" && writable && (
+        <IconButton
+          icon="trash-2"
+          label={t("project.deleteProject")}
+          onClick={() => {
+            if (globalThis.confirm(t("project.deleteProjectConfirm"))) {
+              getSync()?.mutate({ type: "project_delete", args: { id: view.projectId } });
+              setView({ kind: "list", list: "today" });
+            }
+          }}
+        />
+      )}
       <div style={{ flex: 1 }} />
       <button
         type="button"

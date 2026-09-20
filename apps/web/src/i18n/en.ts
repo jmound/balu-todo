@@ -216,6 +216,8 @@ export const en = {
   "project.sectionName": "Section name",
   "project.deleteSection": "Delete section",
   "project.deleteSectionConfirm": "Delete this section? Its tasks are kept and moved out of the section.",
+  "project.deleteProject": "Delete project",
+  "project.deleteProjectConfirm": "Delete this project? All tasks, sections, and comments within it will also be deleted.",
 
   // Screen-reader announcements for drag & drop; a successful move stays
   // silent otherwise (rejections are reported by sync.rejected).

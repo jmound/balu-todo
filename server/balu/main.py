@@ -148,7 +148,7 @@ def create_app() -> FastAPI:
     # (overrides on the parent app do not reach a mounted sub-application).
     app.state.api = api
 
-    @app.get("/healthz")
+    @app.api_route("/healthz", methods=["GET", "HEAD"])
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
@@ -167,7 +167,7 @@ def _mount_static(app: FastAPI) -> None:
 
     root = _STATIC_DIR.resolve()
 
-    @app.get("/{full_path:path}")
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
     def spa_fallback(full_path: str):
         # Starlette percent-decodes `full_path`, so `..` survives encoded forms
         # (`%2e%2e%2f`, `..%2f`, …). Resolve and require containment under the

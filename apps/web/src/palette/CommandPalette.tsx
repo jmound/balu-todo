@@ -52,6 +52,7 @@ function viewForTask(task: Task, today: string): ViewSel {
 export function CommandPalette() {
   const open = useApp((s) => s.paletteOpen);
   const setPalette = useApp((s) => s.setPalette);
+  const view = useApp((s) => s.view);
   const setView = useApp((s) => s.setView);
   const setQuickAdd = useApp((s) => s.setQuickAdd);
   const selectTask = useApp((s) => s.selectTask);
@@ -163,6 +164,20 @@ export function CommandPalette() {
         close();
       },
     });
+      if (view.kind === "project") {
+        commands.push({
+          id: "cmd:deleteProject",
+          icon: "trash-2",
+          label: t("project.deleteProject"),
+          run: () => {
+            close();
+            if (globalThis.confirm(t("project.deleteProjectConfirm"))) {
+              getSync()?.mutate({ type: "project_delete", args: { id: view.projectId } });
+              setView({ kind: "list", list: "today" });
+            }
+          },
+        });
+      }
     }
     for (const [list, icon, key] of SMART_LISTS) {
       commands.push({
@@ -223,7 +238,7 @@ export function CommandPalette() {
 
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, snapshot, theme, today, writable]);
+  }, [query, snapshot, theme, today, writable, view]);
 
   const flat = useMemo(() => groups.flatMap((g) => g.entries), [groups]);
 

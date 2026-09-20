@@ -64,6 +64,10 @@ export function addProject(args: { name: string; color?: string; sort_order?: nu
   return mutate('project_add', args);
 }
 
+export function deleteProject(id: string) {
+  return mutate('project_delete', { id });
+}
+
 // ── Comments (contract §5.4, v1.2) ────────────────────────────────────────
 export function addComment(taskId: string, body: string) {
   return mutate('comment_add', { task_id: taskId, body });

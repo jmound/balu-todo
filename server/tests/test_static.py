@@ -91,3 +91,11 @@ def test_spa_fallback_direct_index_request_is_also_no_cache(spa):
     resp = spa.get("/index.html")
     assert resp.status_code == 200
     assert resp.headers["cache-control"] == "no-cache"
+
+
+def test_spa_fallback_supports_head_request(spa):
+    resp = spa.head("/")
+    assert resp.status_code == 200
+    assert resp.text == ""
+    assert resp.headers["cache-control"] == "no-cache"
+
