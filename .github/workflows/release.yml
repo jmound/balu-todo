@@ -1,0 +1,106 @@
+name: release
+
+# Tag vX.Y.Z → build the multi-platform image (web client baked in) for amd64 and
+# arm64 and push it to GitHub Container Registry (GHCR) as <owner>/balu-todo:<version>
+# and :latest, then publish a GitHub Release with automated notes.
+#
+# Can also be dispatched manually as a dry run to verify login and multi-arch build
+# without publishing tags or release notes.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Verify login and build only — push nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version and publish mode
+        id: meta-env
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.inputs.dry_run }}" = "false" ]; then
+            case "$GITHUB_REF" in
+              refs/tags/v*)
+                echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+                echo "publish=true" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                echo "dry_run=false is only allowed from a v* tag (got $GITHUB_REF)" >&2
+                exit 1
+                ;;
+            esac
+          else
+            echo "version=dryrun-$(echo "$GITHUB_SHA" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ steps.meta-env.outputs.version }}
+            type=raw,value=latest,enable=${{ steps.meta-env.outputs.publish == 'true' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            SKIP_WEB=0
+            VERSION=${{ steps.meta-env.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ steps.meta-env.outputs.publish == 'true' }}
+
+  release:
+    needs: image
+    if: github.event_name == 'push' || github.event.inputs.dry_run == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          VERSION="${TAG#v}"
+          BODY=$(printf '```sh\ndocker pull %s:%s\n```\n\n`linux/amd64` and `linux/arm64`.\n`%s:latest` now points here too.\n' "$IMAGE" "$VERSION" "$IMAGE")
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "Balu ${VERSION}" --notes "$BODY"
+          else
+            gh release create "$TAG" --title "Balu ${VERSION}" --notes "$BODY" --generate-notes
+          fi
