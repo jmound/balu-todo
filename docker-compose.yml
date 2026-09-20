@@ -27,7 +27,11 @@ services:
     # from .env by compose itself but never passed in, so setting them appeared to
     # do nothing.
     env_file:
-      - .env
+      # `required: false` so a checkout without a .env still parses — the `:?`
+      # guards below are what actually enforce the mandatory settings, and they
+      # produce a far clearer message than "env file not found".
+      - path: .env
+        required: false
     environment:
       # Explicit so the `:?` guards still fail fast when these are missing.
       DATABASE_URL: postgresql+psycopg://balu:${BALU_DB_PASSWORD:?set BALU_DB_PASSWORD in .env — see .env.example}@db:5432/balu
