@@ -479,7 +479,7 @@ export function TaskListSurface({ groups, emptyLabel, showProject, projects, lab
 
   return (
     <main style={{ flex: 1, overflow: "auto", background: "var(--bg)" }}>
-      <div style={{ maxWidth: "var(--content-max)", margin: "0 auto", padding: "12px 24px 96px" }}>
+      <div className="balu-task-list-wrap" style={{ maxWidth: "var(--content-max)", margin: "0 auto" }}>
         {!hasAny && <EmptyState label={emptyLabel} />}
         {hasAny && (dnd?.mode === "reschedule" ? (
           // reschedule uses per-group droppables and free draggables

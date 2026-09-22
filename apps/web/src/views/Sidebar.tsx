@@ -18,6 +18,7 @@ import { useApp } from "../store/app.js";
 import type { TranslationKey } from "../i18n/index.js";
 import { SidebarItem } from "../components/SidebarItem.js";
 import { Button } from "../components/Button.js";
+import { IconButton } from "../components/IconButton.js";
 import { Icon } from "../components/Icon.js";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher.js";
 
@@ -82,6 +83,7 @@ export function Sidebar({ snapshot }: { snapshot: Snapshot }) {
   const view = useApp((s) => s.view);
   const setView = useApp((s) => s.setView);
   const setQuickAdd = useApp((s) => s.setQuickAdd);
+  const setSidebarOpen = useApp((s) => s.setSidebarOpen);
   const role = useMyRole();
   const writable = canWrite(role);
   const [adding, setAdding] = useState(false);
@@ -151,17 +153,7 @@ export function Sidebar({ snapshot }: { snapshot: Snapshot }) {
   });
 
   return (
-    <aside
-      style={{
-        width: "var(--sidebar-width)",
-        flex: "none",
-        background: "var(--surface)",
-        borderRight: "1px solid var(--border)",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
+    <aside className="balu-sidebar">
       <div style={{ padding: "18px 16px 12px", display: "flex", alignItems: "center", gap: 8 }}>
         <span
           style={{
@@ -178,6 +170,13 @@ export function Sidebar({ snapshot }: { snapshot: Snapshot }) {
           <Icon name="check" size={16} color="#fff" strokeWidth={3} />
         </span>
         <span style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.5px", color: "var(--text-primary)" }}>balu</span>
+        <div style={{ flex: 1 }} />
+        <IconButton
+          className="balu-mobile-close-sidebar"
+          icon="x"
+          label={t("nav.closeMenu")}
+          onClick={() => setSidebarOpen(false)}
+        />
       </div>
 
       <nav style={{ padding: "4px 8px", display: "flex", flexDirection: "column", gap: 1 }}>
@@ -274,7 +273,15 @@ export function Sidebar({ snapshot }: { snapshot: Snapshot }) {
 
       <div style={{ marginTop: "auto", padding: 12, borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 10 }}>
         {writable && (
-          <Button variant="secondary" icon="plus" fullWidth onClick={() => setQuickAdd(true)}>
+          <Button
+            variant="secondary"
+            icon="plus"
+            fullWidth
+            onClick={() => {
+              setQuickAdd(true);
+              setSidebarOpen(false);
+            }}
+          >
             {t("quickadd.add")}
             <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-tertiary)", fontWeight: 400 }}>⌘N</span>
           </Button>

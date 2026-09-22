@@ -38,6 +38,7 @@ export interface AppState {
   focusDeadline: boolean;
   quickAddOpen: boolean;
   paletteOpen: boolean;
+  sidebarOpen: boolean;
   theme: Theme;
   locale: Locale;
 
@@ -59,6 +60,8 @@ export interface AppState {
   setFullscreen(id: string | null): void;
   setQuickAdd(open: boolean): void;
   setPalette(open: boolean): void;
+  setSidebarOpen(open: boolean): void;
+  toggleSidebar(): void;
   setTheme(theme: Theme): void;
   setLocale(locale: Locale): void;
   setVisibleTaskIds(ids: string[]): void;
@@ -78,6 +81,7 @@ export const useApp = create<AppState>((set, get) => ({
   focusDeadline: false,
   quickAddOpen: false,
   paletteOpen: false,
+  sidebarOpen: false,
   theme: initialTheme(),
   locale: "en",
 
@@ -101,13 +105,15 @@ export const useApp = create<AppState>((set, get) => ({
   setMemberships: (memberships) => set({ memberships }),
   setWorkspace: (workspace) => {
     rememberWorkspaceId(workspace.id);
-    set({ workspace, view: { kind: "list", list: "today" }, selectedTaskId: null, fullscreenTaskId: null, focusedIndex: -1 });
+    set({ workspace, view: { kind: "list", list: "today" }, selectedTaskId: null, fullscreenTaskId: null, focusedIndex: -1, sidebarOpen: false });
   },
-  setView: (view) => set({ view, selectedTaskId: null, fullscreenTaskId: null, focusedIndex: -1 }),
+  setView: (view) => set({ view, selectedTaskId: null, fullscreenTaskId: null, focusedIndex: -1, sidebarOpen: false }),
   selectTask: (selectedTaskId, focusDeadline = false) => set({ selectedTaskId, focusDeadline }),
   setFullscreen: (fullscreenTaskId) => set({ fullscreenTaskId }),
   setQuickAdd: (quickAddOpen) => set({ quickAddOpen }),
   setPalette: (paletteOpen) => set({ paletteOpen }),
+  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setTheme: (theme) => {
     globalThis.localStorage?.setItem(THEME_KEY, theme);
     set({ theme });
@@ -135,5 +141,6 @@ export const useApp = create<AppState>((set, get) => ({
       fullscreenTaskId: null,
       quickAddOpen: false,
       paletteOpen: false,
+      sidebarOpen: false,
     }),
 }));
