@@ -263,19 +263,7 @@ export function DetailPanel({ snapshot }: { snapshot: Snapshot }) {
   }
 
   return (
-    <aside
-      className="balu-panel-in"
-      style={{
-        width: 380,
-        flex: "none",
-        height: "100%",
-        background: "var(--surface)",
-        borderLeft: "1px solid var(--border)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "auto",
-      }}
-    >
+    <aside className="balu-detail-panel balu-panel-in">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 12px 12px 20px" }}>
         {writable ? (
           <IconButton icon="trash-2" label={t("detail.delete")} onClick={() => {

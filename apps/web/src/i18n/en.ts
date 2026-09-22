@@ -6,6 +6,8 @@ export const en = {
   "nav.someday": "Someday",
   "nav.logbook": "Logbook",
   "nav.assigned": "Assigned to me",
+  "nav.menu": "Menu",
+  "nav.closeMenu": "Close navigation",
 
   "section.projects": "Projects",
   "section.thisEvening": "This Evening",

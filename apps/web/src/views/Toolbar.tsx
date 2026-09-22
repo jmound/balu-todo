@@ -21,6 +21,8 @@ export function Toolbar({ snapshot }: { snapshot: Snapshot }) {
   const setTheme = useApp((s) => s.setTheme);
   const setView = useApp((s) => s.setView);
   const setPalette = useApp((s) => s.setPalette);
+  const toggleSidebar = useApp((s) => s.toggleSidebar);
+  const setQuickAdd = useApp((s) => s.setQuickAdd);
 
   const writable = canWrite(useMyRole());
 
@@ -44,19 +46,14 @@ export function Toolbar({ snapshot }: { snapshot: Snapshot }) {
   }
 
   return (
-    <header
-      style={{
-        height: 60,
-        flex: "none",
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        padding: "0 24px",
-        borderBottom: "1px solid var(--border)",
-        background: "var(--surface)",
-      }}
-    >
-      <h1 style={{ margin: 0, fontSize: 24, fontWeight: "var(--weight-semibold)", color: "var(--text-primary)", letterSpacing: "-0.5px" }}>
+    <header className="balu-toolbar">
+      <IconButton
+        className="balu-mobile-menu-btn"
+        icon="menu"
+        label={t("nav.menu")}
+        onClick={toggleSidebar}
+      />
+      <h1 className="balu-toolbar-title">
         {title}
       </h1>
       {progress && <ProgressRing value={progress.value} total={progress.total} showLabel />}
@@ -75,27 +72,23 @@ export function Toolbar({ snapshot }: { snapshot: Snapshot }) {
       <div style={{ flex: 1 }} />
       <button
         type="button"
+        className="balu-toolbar-search"
         onClick={() => setPalette(true)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          width: 200,
-          height: 32,
-          padding: "0 12px",
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-control)",
-          color: "var(--text-tertiary)",
-          cursor: "pointer",
-          fontFamily: "var(--font-sans)",
-          fontSize: "var(--text-secondary-size)",
-        }}
+        title={t("toolbar.search")}
+        aria-label={t("toolbar.search")}
       >
         <Icon name="search" size={16} color="var(--text-tertiary)" />
-        <span style={{ flex: 1, textAlign: "left" }}>{t("toolbar.search")}</span>
-        <span style={{ fontSize: 12 }}>⌘K</span>
+        <span className="balu-toolbar-search-text" style={{ flex: 1, textAlign: "left" }}>{t("toolbar.search")}</span>
+        <span className="balu-toolbar-search-shortcut" style={{ fontSize: 12 }}>⌘K</span>
       </button>
+      {writable && (
+        <IconButton
+          className="balu-mobile-quickadd-btn"
+          icon="plus"
+          label={t("quickadd.add")}
+          onClick={() => setQuickAdd(true)}
+        />
+      )}
       <SyncIndicator state={snapshot.status} label={t(syncLabelKey(snapshot.status) as TranslationKey)} />
       <IconButton icon={THEME_ICON[theme]} label={t("settings.theme")} onClick={cycleTheme} />
       <IconButton

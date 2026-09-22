@@ -9,6 +9,8 @@ export const de: Record<TranslationKey, string> = {
   "nav.someday": "Vielleicht",
   "nav.logbook": "Logbuch",
   "nav.assigned": "Mir zugewiesen",
+  "nav.menu": "Menü",
+  "nav.closeMenu": "Navigation schließen",
 
   "section.projects": "Projekte",
   "section.thisEvening": "Heute Abend",

@@ -30,6 +30,8 @@ export function Shell() {
   const snapshot = useSnapshot();
   const view = useApp((s) => s.view);
   const selectedTaskId = useApp((s) => s.selectedTaskId);
+  const sidebarOpen = useApp((s) => s.sidebarOpen);
+  const setSidebarOpen = useApp((s) => s.setSidebarOpen);
   const { t } = useT();
   useUrlSync();
 
@@ -142,7 +144,8 @@ export function Shell() {
           st.setQuickAdd(true);
           break;
         case "Escape":
-          if (st.selectedTaskId) st.selectTask(null);
+          if (st.sidebarOpen) st.setSidebarOpen(false);
+          else if (st.selectedTaskId) st.selectTask(null);
           else st.setFocusedIndex(-1);
           break;
       }
@@ -181,12 +184,19 @@ export function Shell() {
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd} accessibility={{ announcements }}>
-      <div style={{ display: "flex", height: "100vh", width: "100vw", background: "var(--bg)", overflow: "hidden" }}>
-        <Sidebar snapshot={snapshot} />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div className="balu-shell">
+        <div
+          className={`balu-sidebar-backdrop ${sidebarOpen ? "balu-sidebar-backdrop--open" : ""}`}
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden={!sidebarOpen}
+        />
+        <div className={`balu-sidebar-container ${sidebarOpen ? "balu-sidebar-container--open" : ""}`}>
+          <Sidebar snapshot={snapshot} />
+        </div>
+        <div className="balu-main">
           <Toolbar snapshot={snapshot} />
-          <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>{content}</div>
+          <div className="balu-content-container">
+            <div className="balu-content-body">{content}</div>
             {selectedTaskId && view.kind !== "settings" && <DetailPanel snapshot={snapshot} />}
           </div>
         </div>
